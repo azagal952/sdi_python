@@ -45,7 +45,6 @@ def triangle_shape(height):
 
     """
     if height == 0: return ""
-
     triangle = []
     for i in range(height):
         num = 2 * i + 1
