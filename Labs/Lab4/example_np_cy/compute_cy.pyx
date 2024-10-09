@@ -10,7 +10,9 @@ DTYPE = np.intc
 cdef int clip(int a, int min_value, int max_value):
     return min(max(a, min_value), max_value)
 
-
+cimport cython
+@cython.boundscheck(False)  # Deactivate bounds checking
+@cython.wraparound(False)   # Deactivate negative indexing.
 def compute(int[:, :] array_1, int[:, :] array_2, int a, int b, int c):
 
     # The "cdef" keyword is also used within functions to type variables. It
