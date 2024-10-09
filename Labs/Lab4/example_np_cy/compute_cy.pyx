@@ -1,3 +1,4 @@
+# cython: infer_types=True
 import numpy as np
 cimport cython
 
@@ -19,8 +20,9 @@ def compute(int[:, ::1] array_1, int[:, ::1] array_2, int a, int b, int c):
     # can only be used at the top indentation level (there are non-trivial
     # problems with allowing them in other places, though we'd love to see
     # good and thought out proposals for it).
-    cdef Py_ssize_t x_max = array_1.shape[0]
-    cdef Py_ssize_t y_max = array_1.shape[1]
+    # as types are inferred, no more needed to specify these here
+    x_max = array_1.shape[0]
+    y_max = array_1.shape[1]
 
     # array_1.shape is now a C array, no it's not possible
     # to compare it simply by using == without a for-loop.
