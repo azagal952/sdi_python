@@ -11,7 +11,7 @@ cdef int clip(int a, int min_value, int max_value):
     return min(max(a, min_value), max_value)
 
 
-def compute(array_1, array_2, int a, int b, int c):
+def compute(int[:, :] array_1, int[:, :] array_2, int a, int b, int c):
 
     # The "cdef" keyword is also used within functions to type variables. It
     # can only be used at the top indentation level (there are non-trivial
@@ -20,11 +20,16 @@ def compute(array_1, array_2, int a, int b, int c):
     cdef Py_ssize_t x_max = array_1.shape[0]
     cdef Py_ssize_t y_max = array_1.shape[1]
 
-    assert array_1.shape == array_2.shape
-    assert array_1.dtype == DTYPE
-    assert array_2.dtype == DTYPE
+    # array_1.shape is now a C array, no it's not possible
+    # to compare it simply by using == without a for-loop.
+    # To be able to compare it to array_2.shape easily,
+    # we convert them both to Python tuples.
+    assert tuple(array_1.shape) == tuple(array_2.shape)
+    # assert array_1.dtype == DTYPE # automatically true now
+    # assert array_2.dtype == DTYPE # automatically true now
 
     result = np.zeros((x_max, y_max), dtype=DTYPE)
+    cdef int[:, :] result_view = result
 
     # It is very important to type ALL your variables. You do not get any
     # warnings if not, only much slower code (they are implicitly typed as
@@ -45,6 +50,6 @@ def compute(array_1, array_2, int a, int b, int c):
 
             tmp = clip(array_1[x, y], 2, 10)
             tmp = tmp * a + array_2[x, y] * b
-            result[x, y] = tmp + c
+            result_view[x, y] = tmp + c
 
     return result
