@@ -1,4 +1,5 @@
 import numpy as np
+cimport cython
 
 # We now need to fix a datatype for our arrays. I've used the variable
 # DTYPE for this, which is assigned to the usual NumPy runtime
@@ -10,10 +11,9 @@ DTYPE = np.intc
 cdef int clip(int a, int min_value, int max_value):
     return min(max(a, min_value), max_value)
 
-cimport cython
 @cython.boundscheck(False)  # Deactivate bounds checking
 @cython.wraparound(False)   # Deactivate negative indexing.
-def compute(int[:, :] array_1, int[:, :] array_2, int a, int b, int c):
+def compute(int[:, ::1] array_1, int[:, ::1] array_2, int a, int b, int c):
 
     # The "cdef" keyword is also used within functions to type variables. It
     # can only be used at the top indentation level (there are non-trivial
@@ -31,7 +31,7 @@ def compute(int[:, :] array_1, int[:, :] array_2, int a, int b, int c):
     # assert array_2.dtype == DTYPE # automatically true now
 
     result = np.zeros((x_max, y_max), dtype=DTYPE)
-    cdef int[:, :] result_view = result
+    cdef int[:, ::1] result_view = result
 
     # It is very important to type ALL your variables. You do not get any
     # warnings if not, only much slower code (they are implicitly typed as
