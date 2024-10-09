@@ -5,16 +5,21 @@ cimport cython
 # We now need to fix a datatype for our arrays. I've used the variable
 # DTYPE for this, which is assigned to the usual NumPy runtime
 # type info object.
-DTYPE = np.intc
+# DTYPE = np.intc
+
+ctypedef fused my_type:
+    int
+    double
+    long long
 
 # cdef means here that this function is a plain C function (so faster).
 # To get all the benefits, we type the arguments and the return value.
-cdef int clip(int a, int min_value, int max_value):
+cdef my_type clip(my_type a, my_type min_value, my_type max_value):
     return min(max(a, min_value), max_value)
 
 @cython.boundscheck(False)  # Deactivate bounds checking
 @cython.wraparound(False)   # Deactivate negative indexing.
-def compute(int[:, ::1] array_1, int[:, ::1] array_2, int a, int b, int c):
+def compute(my_type[:, ::1] array_1, my_type[:, ::1] array_2, my_type a, my_type b, my_type c):
 
     # The "cdef" keyword is also used within functions to type variables. It
     # can only be used at the top indentation level (there are non-trivial
@@ -32,8 +37,15 @@ def compute(int[:, ::1] array_1, int[:, ::1] array_2, int a, int b, int c):
     # assert array_1.dtype == DTYPE # automatically true now
     # assert array_2.dtype == DTYPE # automatically true now
 
-    result = np.zeros((x_max, y_max), dtype=DTYPE)
-    cdef int[:, ::1] result_view = result
+    if my_type is int:
+        dtype = np.intc
+    elif my_type is double:
+        dtype = np.double
+    elif my_type is cython.longlong:
+        dtype = np.longlong
+
+    result = np.zeros((x_max, y_max), dtype=dtype)
+    cdef my_type[:, ::1] result_view = result
 
     # It is very important to type ALL your variables. You do not get any
     # warnings if not, only much slower code (they are implicitly typed as
@@ -44,7 +56,7 @@ def compute(int[:, ::1] array_1, int[:, ::1] array_2, int a, int b, int c):
     # datatype size, it will simply wrap around like in C, rather than raise
     # an error like in Python.
 
-    cdef int tmp
+    cdef my_type tmp
 
     # Py_ssize_t is the proper C type for Python array indices.
     cdef Py_ssize_t x, y
